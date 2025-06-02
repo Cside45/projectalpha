@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { ClientProviders } from '@/components/providers/client-providers';
 import { Inter } from 'next/font/google';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { SessionProvider } from '@/components/SessionProvider';
 import { Toaster } from '@/components/ui/toaster';
 import { Navigation } from '@/components/Navigation';
