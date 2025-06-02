@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prod": "NODE_ENV=production pm2 start npm --name 'youtube-title-tool' -- start"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
