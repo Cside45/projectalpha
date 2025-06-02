@@ -77,7 +77,7 @@ export async function POST(
     const submitterReputation = await kv.get<UserReputation>(submitterKey);
 
     if (submitterReputation) {
-      submitterReputation.score += scoreChange;
+      submitterReputation.points += scoreChange;
       await kv.set(submitterKey, submitterReputation);
     }
 
