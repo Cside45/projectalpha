@@ -5,7 +5,7 @@ export interface Trend {
   category: string;
   tags: string[];
   imageUrl?: string;
-  score: number;
+  points: number;
   votes: number;
   submittedBy: string;
   timestamp: number;

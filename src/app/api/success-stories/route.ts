@@ -84,13 +84,13 @@ export async function POST(req: Request) {
     await kv.set(storyKey, story);
 
     // Add to sorted set for chronological listing
-    await kv.zadd(SUCCESS_STORIES_KEY, {}, {
+    await kv.zadd(SUCCESS_STORIES_KEY, {
       score: Date.now(),
       member: storyId
     });
 
     // Add to user's stories list
-    await kv.zadd(getUserStoriesKey(session.user.email), {}, {
+    await kv.zadd(getUserStoriesKey(session.user.email), {
       score: Date.now(),
       member: storyId
     });

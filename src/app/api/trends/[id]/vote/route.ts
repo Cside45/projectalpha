@@ -38,7 +38,7 @@ export async function POST(
       );
     }
 
-    // Get all trends
+    // Get trend data
     const trendData = await kv.get<Trend>(`trend:${trendId}`);
     if (!trendData) {
       return NextResponse.json(
@@ -47,16 +47,16 @@ export async function POST(
       );
     }
 
-    // Calculate new score
-    let scoreChange = value;
+    // Calculate new points
+    let pointsChange = value;
     if (existingVote) {
       // If changing vote, need to reverse the old vote
-      scoreChange = value - existingVote;
+      pointsChange = value - existingVote;
     }
 
     const updatedTrend: Trend = {
       ...trendData,
-      score: trendData.score + scoreChange,
+      points: trendData.points + pointsChange,
       votes: trendData.votes + (existingVote ? 0 : 1),
     };
 
@@ -64,9 +64,9 @@ export async function POST(
     await kv.set(`trend:${trendId}`, updatedTrend);
 
     // Update trend in sorted set
-    await kv.zadd('trends', {
-      score: updatedTrend.score,
-      member: JSON.stringify(updatedTrend),
+    await kv.zadd('trends:points', {
+      score: updatedTrend.points,
+      member: trendId,
     });
 
     // Store the vote
@@ -77,7 +77,7 @@ export async function POST(
     const submitterReputation = await kv.get<UserReputation>(submitterKey);
 
     if (submitterReputation) {
-      submitterReputation.points += scoreChange;
+      submitterReputation.points += pointsChange;
       await kv.set(submitterKey, submitterReputation);
     }
 

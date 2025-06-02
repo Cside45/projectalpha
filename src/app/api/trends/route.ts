@@ -14,7 +14,7 @@ cloudinary.config({
 
 export async function GET() {
   try {
-    const trendIds = await kv.zrange('trends:score', 0, -1, { rev: true });
+    const trendIds = await kv.zrange('trends:points', 0, -1, { rev: true });
     const trends: Trend[] = [];
 
     for (const id of trendIds) {
@@ -68,8 +68,8 @@ export async function POST(req: Request) {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               folder: 'trends',
-              moderation: 'aws_rek', // Enable AWS Rekognition moderation
-              notification_url: '/api/cloudinary-moderation-webhook', // Optional: webhook for async moderation results
+              moderation: 'aws_rek',
+              notification_url: '/api/cloudinary-moderation-webhook',
             },
             (error, result) => {
               if (error) reject(error);
@@ -82,9 +82,7 @@ export async function POST(req: Request) {
 
         const uploadResult = result as any;
 
-        // Check moderation status
         if (uploadResult.moderation && uploadResult.moderation.status === 'rejected') {
-          // Delete the rejected image
           await cloudinary.uploader.destroy(uploadResult.public_id);
           
           return NextResponse.json(
@@ -111,7 +109,7 @@ export async function POST(req: Request) {
       category,
       tags,
       imageUrl,
-      score: 0,
+      points: 0,
       votes: 0,
       submittedBy: session.user.name || 'Anonymous',
       timestamp: Date.now(),
@@ -121,25 +119,23 @@ export async function POST(req: Request) {
     await kv.set(`trend:${trendId}`, trend);
 
     // Add to sorted set for ranking
-    await kv.zadd('trends:score', {
-      score: trend.score,
+    await kv.zadd('trends:points', {
+      score: trend.points,
       member: trendId,
     });
 
     // Update user reputation
-    const userId = session.user.id;
-    const userKey = `user:${userId}:reputation`;
+    const userKey = `user:${session.user.email}:reputation`;
     const userReputation = await kv.get<UserReputation>(userKey) || {
-      userId,
-      score: 0,
-      badges: [],
-      trendsSubmitted: 0,
-      successStories: 0,
-      timestamp: Date.now(),
+      userId: session.user.email,
+      points: 0,
+      trendsSpotted: 0,
+      successfulPosts: 0,
+      timestamp: Date.now()
     };
 
-    userReputation.trendsSubmitted += 1;
-    userReputation.score += 5;
+    userReputation.trendsSpotted += 1;
+    userReputation.points += 5;
     await kv.set(userKey, userReputation);
 
     return NextResponse.json({ trend });

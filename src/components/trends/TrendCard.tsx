@@ -118,7 +118,7 @@ export function TrendCard({ trend, onVote }: TrendCardProps) {
           </div>
           <div className="flex items-center">
             <span className="text-sm font-medium">
-              🔥 {trend.score > 0 ? trend.score : 0}
+              🔥 {trend.points > 0 ? trend.points : 0}
             </span>
           </div>
         </div>
