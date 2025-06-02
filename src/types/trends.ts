@@ -20,23 +20,23 @@ export interface TrendVote {
 
 export interface SuccessStory {
   id: string;
-  trendId: string;
   userId: string;
+  userEmail: string;
   title: string;
-  description: string;
+  originalTitle: string;
+  category: string;
+  tags: string[];
   metrics: {
-    views: number;
-    likes: number;
-    ctr: number;
+    [key: string]: number | string;
   };
+  imageUrl?: string;
   timestamp: number;
 }
 
 export interface UserReputation {
   userId: string;
-  score: number;
-  badges: string[];
-  trendsSubmitted: number;
-  successStories: number;
+  points: number;
+  trendsSpotted: number;
+  successfulPosts: number;
   timestamp: number;
 } 

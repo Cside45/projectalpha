@@ -68,50 +68,52 @@ export async function POST(req: Request) {
     const storyId = nanoid();
     const story: SuccessStory = {
       id: storyId,
-      title,
-      originalTitle,
-      metrics,
-      category,
       userId: session.user.email,
       userEmail: session.user.email,
+      title,
+      originalTitle,
+      category,
+      tags,
+      metrics,
       imageUrl,
-      timestamp: Date.now(),
-      tags: tags || [],
+      timestamp: Date.now()
     };
 
-    // Store story data
-    await kv.set(getSuccessStoryKey(storyId), story);
-    
+    // Store the story
+    const storyKey = getSuccessStoryKey(storyId);
+    await kv.set(storyKey, story);
+
     // Add to sorted set for chronological listing
-    await kv.zadd(SUCCESS_STORIES_KEY, {
+    await kv.zadd(SUCCESS_STORIES_KEY, {}, {
       score: Date.now(),
-      member: storyId,
+      member: storyId
     });
 
     // Add to user's stories list
-    await kv.sadd(getUserStoriesKey(session.user.email), storyId);
+    await kv.zadd(getUserStoriesKey(session.user.email), {}, {
+      score: Date.now(),
+      member: storyId
+    });
 
     // Update user reputation
     const userReputationKey = `users:${session.user.email}:reputation`;
-    const existingReputation = await kv.get<UserReputation>(userReputationKey);
-    
-    const reputation: UserReputation = {
-      points: (existingReputation?.points || 0) + 10,
-      trendsSpotted: existingReputation?.trendsSpotted || 0,
-      successfulPosts: (existingReputation?.successfulPosts || 0) + 1,
-      badges: existingReputation?.badges || [],
-      lastContribution: Date.now(),
+    const existingReputation = await kv.get<UserReputation>(userReputationKey) || {
+      userId: session.user.email,
+      points: 0,
+      trendsSpotted: 0,
+      successfulPosts: 0,
+      timestamp: Date.now()
     };
 
-    // Add badges based on success metrics
-    if (metrics.views7d && metrics.views7d > 10000 && !reputation.badges.includes('Viral Success')) {
-      reputation.badges.push('Viral Success');
-    }
-    if (metrics.ctr && metrics.ctr > 15 && !reputation.badges.includes('CTR Master')) {
-      reputation.badges.push('CTR Master');
-    }
+    // Increment reputation
+    const updatedReputation: UserReputation = {
+      ...existingReputation,
+      points: existingReputation.points + 10,
+      successfulPosts: existingReputation.successfulPosts + 1,
+      timestamp: Date.now()
+    };
 
-    await kv.set(userReputationKey, reputation);
+    await kv.set(userReputationKey, updatedReputation);
 
     return NextResponse.json({ story });
   } catch (error) {
