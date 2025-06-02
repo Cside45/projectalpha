@@ -5,16 +5,32 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Function to read environment variables from file
+read_env_file() {
+    if [ -f "../.env.production" ]; then
+        echo "Reading environment variables from .env.production"
+        export $(cat ../.env.production | sed 's/#.*//g' | xargs)
+    else
+        echo "Error: .env.production file not found in project root"
+        exit 1
+    fi
+}
+
 # Function to check required environment variables
 check_env_vars() {
+    read_env_file
     required_vars=("NEXTAUTH_SECRET" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_SECRET" "OPENAI_API_KEY" "STRIPE_SECRET_KEY" "STRIPE_WEBHOOK_SECRET" "STRIPE_PRICE_ID_PAY_PER_USE" "STRIPE_PRICE_ID_SUBSCRIPTION")
     
     for var in "${required_vars[@]}"; do
-        if [ -z "${!var}" ]; then
+        eval value=\$$var
+        if [ -z "$value" ]; then
             echo "Error: Required environment variable $var is not set"
             exit 1
+        else
+            echo "✓ Found $var"
         fi
     done
+    echo "All required environment variables are set!"
 }
 
 # Check if running as root
