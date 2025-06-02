@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 export default function PaymentSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const sessionId = searchParams?.get('session_id');
 
   useEffect(() => {
     // Here you could verify the session and update the user's subscription status

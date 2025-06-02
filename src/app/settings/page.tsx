@@ -86,7 +86,7 @@ export default function SettingsPage() {
       }
 
       toast({
-        variant: 'success',
+        variant: 'default',
         title: 'Settings Saved',
         description: 'Your preferences have been updated successfully.',
       });
