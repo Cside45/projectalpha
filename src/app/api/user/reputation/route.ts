@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { kv } from '@vercel/kv';
 import { UserReputation } from '@/types/trends';
 
+// Mark this route as dynamic
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession();
